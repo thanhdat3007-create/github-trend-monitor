@@ -1,0 +1,28 @@
+name: Auto Sync Upstream
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Chạy tự động mỗi 6 tiếng
+  workflow_dispatch:        # Nút bấm chạy thủ công trong tab Actions
+
+jobs:
+  sync:
+    name: Sync with upstream repo
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Sync upstream
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote add upstream https://github.com/nottobeaproblem/github-trend-monitor.git
+          git fetch upstream main
+          git merge upstream/main -m "chore: auto sync from upstream" || git merge --abort
+          git push origin main
